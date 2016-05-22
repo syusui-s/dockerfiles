@@ -4,6 +4,8 @@ MAINTAINER Shusui Moyatani
 ARG server_dir=/srv/minecraft
 ARG exec_user=minecraft
 ENV VERSION=1.9.4
+ENV EXEC_JAR="minecraft_server.${VERSION}.jar"
+ENV URI_JAR="https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/${EXEC_JAR}"
 ENV MAX_HEAP=1024M
 ENV MIN_HEAP=512M
 ENV THREADS=1
@@ -20,20 +22,21 @@ RUN    apk --update add openjdk8-jre curl \
 
 USER minecraft
 WORKDIR ${server_dir}
-CMD ( test -f "eula.txt" \
-	||  (  test 1 -eq "${EULA}" && echo "eula=true" > "eula.txt" ) \
-	||  (  echo "You need to agree to the EULA of Minecraft!" \
+CMD (  ( test -f "eula.txt" ) \ 
+	|| ( test 1 -eq "${EULA}" && echo "eula=true" > "eula.txt" ) \
+	|| (   echo "You need to agree to the EULA of Minecraft!" \
+		&& echo "Read this: <https://account.mojang.com/documents/minecraft_eula>." \
 		&& echo "If you agree it, edit eula.txt and set \"eula\" to true." \
 		&& exit 1 \
-		) \
+	   ) \
 	) \
-	&&  (  test -f "minecraft_server.${VERSION}.jar" \
-		|| curl -O "https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/minecraft_server.${VERSION}.jar" \
+	&&  (  test -f "${EXEC_JAR}" \
+		|| curl -o ${EXEC_JAR} ${URI_JAR} \
 		) \
-    && /usr/bin/java -jar minecraft_server.${VERSION}.jar ${JAVA_PARAMS}
+    && /usr/bin/java -jar ${EXEC_JAR} ${JAVA_PARAMS}
 
 # Minecraft Port
 EXPOSE 25565
 
 # Mountpoints: Settings files and Minecraft directory
-VOLUME ["/srv/minecraft/"]
+VOLUME ["${server_dir}"]

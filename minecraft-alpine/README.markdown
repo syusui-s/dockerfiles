@@ -5,14 +5,20 @@
 $ docker build -t minecraft-server:latest --rm=true .
 ```
 
-## Exec
-* To agree to Minecraft license: `-e EULA=1`
-* Port settings: `-p HOST_PORT:CONTAINER_PORT`
-* Volume setting: `-v HOST_DIR:CONTAINER_DIR`
-* To detach : `Ctrl-p Ctrl-q`
-
+## Run
 Example:
 
 ``` sh
-$ docker run -t -i -e EULA=1 -p 25565:25565 -v /home/user/docker/minecraft-xxxx:/srv/minecraft minecraft-server:latest
+# enable --tty, --interactive
+$ docker run -t -i -e EULA=1 -e THREADS=4 -p 25565:25565 -v /opt/docker_volumes/minecraft-xxxx:/srv/minecraft minecraft-server:latest
 ```
+
+## Options
+* To agree to Minecraft license: `-e EULA=1`
+* Port assignment: `-p HOST_PORT:CONTAINER_PORT`
+* Volume mounting: `-v HOST_DIR:CONTAINER_DIR`
+* # of Threads: -e THREADS=4
+* Selecting version: `-e VERSION=1.7.3`
+* Specifying a jar file: `-e EXEC_JAR=forge-1.7.10-10.13.4.1614-1.7.10-universal.jar`
+	* If you specify this, you should download a jar manually and [add it to a container](https://docs.docker.com/engine/reference/commandline/cp/).
+* To detach : `Ctrl-p Ctrl-q` (if you created a container with -i option)
