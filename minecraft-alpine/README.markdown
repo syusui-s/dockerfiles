@@ -10,7 +10,13 @@ Example:
 
 ``` sh
 # enable --tty, --interactive
-$ docker run -t -i -e EULA=1 -e THREADS=4 -p 25565:25565 -v /opt/docker_volumes/minecraft-xxxx:/srv/minecraft minecraft-server:latest
+$ docker run -t -i \
+	-e EULA=1 \
+	-e THREADS=4 \
+	-p 25565:25565 \
+	-v /opt/docker_volumes/minecraft-xxxx:/srv/minecraft \
+	-v /etc/localtime:/etc/localtime:ro \
+	minecraft-server:latest 
 ```
 
 ## Options

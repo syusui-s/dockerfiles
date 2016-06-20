@@ -3,7 +3,7 @@ MAINTAINER Shusui Moyatani
 
 ARG server_dir=/srv/minecraft
 ARG exec_user=minecraft
-ENV VERSION=1.9.4
+ENV VERSION=1.10
 ENV EXEC_JAR="minecraft_server.${VERSION}.jar"
 ENV URI_JAR="https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/${EXEC_JAR}"
 ENV MAX_HEAP=1024M
