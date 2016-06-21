@@ -12,7 +12,7 @@ Example:
 # enable --tty, --interactive
 $ docker run -t -i \
 	-e EULA=1 \
-	-e THREADS=4 \
+	-e GCTHREADS=4 \
 	-p 25565:25565 \
 	-v /opt/docker_volumes/minecraft-xxxx:/srv/minecraft \
 	-v /etc/localtime:/etc/localtime:ro \
@@ -23,7 +23,7 @@ $ docker run -t -i \
 * To agree to Minecraft license: `-e EULA=1`
 * Port assignment: `-p HOST_PORT:CONTAINER_PORT`
 * Volume mounting: `-v HOST_DIR:CONTAINER_DIR`
-* # of Threads: -e THREADS=4
+* # of Threads for GC: -e GCTHREADS=4
 * Selecting version: `-e VERSION=1.7.3`
 * Specifying a jar file: `-e EXEC_JAR=forge-1.7.10-10.13.4.1614-1.7.10-universal.jar`
 	* If you specify this, you should download a jar manually and [add it to a container](https://docs.docker.com/engine/reference/commandline/cp/).
