@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Enable debug output
+set -x
+
+# Enable process monitoring
+set -m
+
 : ${VERSION:=1.10}
 : ${EXEC_JAR:="minecraft_server.${VERSION}.jar"}
 : ${URI_JAR:="https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/${EXEC_JAR}"}
@@ -18,7 +24,7 @@ if ( ! test -f "eula.txt" ); then
 	echo -ne "#By changing the setting below to TRUE you are indicating your agreement to our EULA" >> ${EULA}
 	echo -ne "(https://account.mojang.com/documents/minecraft_eula).\n" >> ${EULA}
 	echo -ne "#$(LC_ALL=C date)\n" >> ${EULA}
-	echo -ne "eula=$(test ${EULA} -eq 1 && echo "true" || echo "false")\n" >> ${EULA}
+	echo -ne "eula=$(test "${EULA}" -eq 1 && echo "true" || echo "false")\n" >> ${EULA}
 fi
 
 while ( grep -q -i 'false' ${EULA} ); do
@@ -50,8 +56,7 @@ fi
 rm -f $FIFO
 mkfifo $FIFO
 
-/usr/bin/java ${JAVA_PARAMS} -jar "${EXEC_JAR}" nogui < $FIFO &
-MINECRAFT_PID=$!
+trap 'echo "container will be stopped manually"; echo "stop" > "$FIFO"; wait; rm -f "$FIFO"; exit 1' SIGTERM SIGINT
 
-trap "echo 'stop' > $FIFO && wait && rm -f $FIFO && exit 1" SIGTERM SIGINT
-wait
+echo >> $FIFO &
+/usr/bin/java ${JAVA_PARAMS} -jar "${EXEC_JAR}" nogui < $FIFO

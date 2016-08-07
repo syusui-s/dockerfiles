@@ -3,6 +3,7 @@ MAINTAINER Shusui Moyatani
 
 ARG server_dir=/srv/minecraft
 ARG exec_user=minecraft
+ARG launcher_dir=/usr/local/bin/
 
 # Install required packages and create group and user
 USER root
@@ -13,13 +14,13 @@ RUN    apk --update add openjdk8-jre curl \
 	&& chown -R ${exec_user}:${exec_user} ${server_dir}
 
 USER ${exec_user}
-WORKDIR ${server_dir}
 
 # add launcher script
-STOPSIGNAL SIGTERM
-ADD launcher.sh launcher.sh
+ADD launcher.sh /usr/local/bin/minecraft_launcher.sh
 
-CMD exec /bin/sh launcher.sh
+WORKDIR ${server_dir}
+STOPSIGNAL SIGTERM
+CMD exec /bin/sh /usr/local/bin/minecraft_launcher.sh
 
 # Minecraft Port
 EXPOSE 25565
