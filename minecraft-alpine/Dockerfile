@@ -20,7 +20,7 @@ ADD launcher.sh /usr/local/bin/minecraft_launcher.sh
 
 WORKDIR ${server_dir}
 STOPSIGNAL SIGTERM
-CMD exec /bin/sh /usr/local/bin/minecraft_launcher.sh
+CMD exec /usr/local/bin/minecraft_launcher.sh
 
 # Minecraft Port
 EXPOSE 25565

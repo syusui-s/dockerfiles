@@ -56,7 +56,9 @@ fi
 rm -f $FIFO
 mkfifo $FIFO
 
-trap 'echo "container will be stopped manually"; echo "stop" > "$FIFO"; wait; rm -f "$FIFO"; exit 1' SIGTERM SIGINT
+trap 'echo "container will be stopped manually"; echo "stop" > "$FIFO"; wait; rm -f "$FIFO"; exit 0' SIGTERM SIGINT
 
 echo >> $FIFO &
-/usr/bin/java ${JAVA_PARAMS} -jar "${EXEC_JAR}" nogui < $FIFO
+/usr/bin/java ${JAVA_PARAMS} -jar "${EXEC_JAR}" nogui < $FIFO &
+
+wait
