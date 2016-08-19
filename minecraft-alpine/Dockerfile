@@ -7,7 +7,7 @@ ARG launcher_dir=/usr/local/bin/
 
 # Install required packages and create group and user
 USER root
-RUN    apk --update add openjdk8-jre curl \
+RUN    apk --update add openjdk8-jre \
 	&& addgroup -g 1000 ${exec_user} \
 	&& adduser -H -D -G ${exec_user} -u 1000 ${exec_user} \
 	&& mkdir -p ${server_dir} \

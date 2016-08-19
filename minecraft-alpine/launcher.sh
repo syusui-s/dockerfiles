@@ -1,14 +1,13 @@
 #!/bin/sh
 
+VERSIONS_URL="https://launchermeta.mojang.com/mc/game/version_manifest.json"
+
 # Enable debug output
 set -x
 
 # Enable process monitoring
 set -m
 
-: ${VERSION:=1.10}
-: ${EXEC_JAR:="minecraft_server.${VERSION}.jar"}
-: ${URI_JAR:="https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/${EXEC_JAR}"}
 : ${MAX_HEAP:="1024M"}
 : ${MIN_HEAP:="512M"}
 : ${GCTHREADS:="1"}
@@ -42,10 +41,32 @@ while ( grep -q -i 'false' ${EULA} ); do
 	fi
 done
 
+# get latest versions
+
+# If specified version is latest versions
+: ${VERSION:="latest-release"}
+if ( echo "${VERSION}" | egrep -e '^latest-snapshot|latest-release$' ); then
+	SNAPSHOT_MATCH='"snapshot":"\([^"]\+\)"'
+	RELEASE_MATCH='"release":"\([^"]\+\)"'
+
+	latest_versions=$(/usr/bin/wget -O - "${VERSIONS_URL}" | egrep -o -e '"latest":{'${SNAPSHOT_MATCH}','${RELEASE_MATCH}'}')
+
+	if ( test "$VERSION" "latest-snapshot" ); then
+		VERSION=$(echo "${latest_versions}" | sed 's/.*'${SNAPSHOT_MATCH}'.*/\1/')
+	elif ( test "${VERSION}" "latest-release" ); then
+		VERSION=$(echo "${latest_versions}" | sed 's/.*'${RELEASE_MATCH}'.*/\1/')
+	else
+		exit 1 # must not come here.
+	fi
+fi
+
+: ${EXEC_JAR:="minecraft_server.${VERSION}.jar"}
+: ${URI_JAR:="https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/${EXEC_JAR}"}
+
 # if file not found, try to download jar
 if ( ! test -f "${EXEC_JAR}" );then
 	echo "Downloading \"${EXEC_JAR}\" from \"${URI_JAR}\"..."
-	curl -o "${EXEC_JAR}" "${URI_JAR}"
+	/usr/bin/wget -O "${EXEC_JAR}" "${URI_JAR}"
 	# if failed to download
 	if ( test "$?" -ne 0); then
 		echo "Couldn't download! Check the enviroment variables to container."
