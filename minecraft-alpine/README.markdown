@@ -2,7 +2,7 @@
 
 ## Features
 * Light-weight: about 110MB.
-* Complying with Copyright: does NOT include a server.
+* Complying with Copyright: does NOT include a server program.
 * Useful options: selecting a version, the number of threads for GC, etc.
 
 ## Build
@@ -11,6 +11,8 @@ $ docker build -t minecraft-server:latest --rm=true .
 ```
 
 ## Run
+A "--tty" option is **required** because a launcher script requires it.
+
 Example:
 
 ``` sh
