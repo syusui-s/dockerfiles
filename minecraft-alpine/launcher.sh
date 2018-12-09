@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e -x
 
 # Enable debug output
 if ( test -n "${DEBUG}" ); then
@@ -24,7 +25,6 @@ VERSIONS_URL="https://launchermeta.mojang.com/mc/game/version_manifest.json"
 : ${EULA:="0"}
 : ${JAVA_PARAMS:="-Xmx${MAX_HEAP} -Xms${MIN_HEAP} -XX:ParallelGCThreads=${GCTHREADS}"}
 
-# when file doesn't exist and EULA is set to 1
 if ( test ! -f "eula.txt" ); then
 	touch eula.txt
 	echo -ne "#By changing the setting below to TRUE you are indicating your agreement to our EULA" >> ${EULA}
@@ -48,23 +48,19 @@ while ( grep -q -i 'false' ${EULA} ); do
 	fi
 done
 
-# get latest versions
+# get versions
+versions="$(/usr/bin/wget -O - "${VERSIONS_URL}")"
 
 # If specified version is latest versions
 : ${VERSION:="latest-release"}
-if ( echo "${VERSION}" | egrep -e '^latest-snapshot|latest-release$' 1>/dev/null 2>&1 ); then
-	SNAPSHOT_MATCH='"snapshot":"([^"]+)"'
-	RELEASE_MATCH='"release":"([^"]+)"'
-
-	latest_versions=$(/usr/bin/wget -O - "${VERSIONS_URL}" | egrep -o -e '"latest":\{'${SNAPSHOT_MATCH}','${RELEASE_MATCH}'\}')
-
-	if ( test "$VERSION" == "latest-snapshot" );    then pattern="${SNAPSHOT_MATCH}"
-	elif ( test "${VERSION}" == "latest-release" ); then pattern="${RELEASE_MATCH}"
+if [ "${VERSION}" = 'latest-snapshot' -o "${VERSION}" = 'latest-release' ]; then
+	if [ "$VERSION" == "latest-snapshot" ];    then pattern=".latest.snapshot"
+	elif [ "${VERSION}" == "latest-release" ]; then pattern=".latest.release"
 	else
 		exit 1 # must not come here.
 	fi
 
-	VERSION=$(echo "${latest_versions}" | sed -nr 's/.*'${pattern}'.*/\1/p')
+	VERSION=$(echo "${versions}" | jq -r "${pattern}")
 
 	if ( test -z "${VERSION}" ); then
 		echo "Automatic VERSION generating is failed. Regex doesn't match version information. You can use this image by setting VERSION manually." >&2
@@ -72,8 +68,11 @@ if ( echo "${VERSION}" | egrep -e '^latest-snapshot|latest-release$' 1>/dev/null
 	fi
 fi
 
+version_url="$(echo "${versions}" | jq -r ".versions[] | select(.id == \"${VERSION}\").url")"
+uri_jar="$(curl "${version_url}" | jq -r ".downloads.server.url")"
+
 : ${EXEC_JAR:="minecraft_server.${VERSION}.jar"}
-: ${URI_JAR:="https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/${EXEC_JAR}"}
+: ${URI_JAR:="${uri_jar}"}
 
 # if file not found, try to download jar
 if ( ! test -f "${EXEC_JAR}" ); then
@@ -98,3 +97,5 @@ wait $mc_pid
 echo "Server stopped."
 
 exit 0
+
+# vim: set ts=4 sw=4 :

@@ -10,7 +10,7 @@ EXPOSE 25565
 
 # Install required packages and create group and user
 USER root
-RUN    apk --update add openjdk8-jre \
+RUN    apk --update add openjdk8-jre jq \
 	&& addgroup -g 1000 ${exec_user} \
 	&& adduser -H -D -G ${exec_user} -u 1000 ${exec_user} \
 	&& mkdir -p ${server_dir} \
