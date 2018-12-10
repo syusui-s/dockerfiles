@@ -1,6 +1,16 @@
 #!/bin/sh
 set -e -x
 
+require() {
+	hash "$1" 1>/dev/null 2>&1 || (
+		echo "There is no command: $1. Please contact 'syusui-s'." >&2
+		exit 1
+	)
+}
+
+require jq
+require java
+
 # Enable debug output
 if ( test -n "${DEBUG}" ); then
 	set -x
@@ -10,12 +20,14 @@ fi
 if ( tty 1>/dev/null 2>&1 ); then
 	set -m
 else
-	echo "There is no TTY. The launcher requires TTY to manage jobs." >&2
-	echo "To enable TTY, plese use \"--tty\" option when \"docker run\"." >&2
+	(
+		echo "There is no TTY. The launcher requires TTY to manage jobs."
+		echo "To enable TTY, plese use \"--tty\" option when \"docker run\"."
+	) >> &2
 	exit 1
 fi
 
-EULA=eula.txt
+EULA_FILE=eula.txt
 FIFO=mcfifo
 VERSIONS_URL="https://launchermeta.mojang.com/mc/game/version_manifest.json"
 
@@ -23,29 +35,27 @@ VERSIONS_URL="https://launchermeta.mojang.com/mc/game/version_manifest.json"
 : ${MIN_HEAP:="512M"}
 : ${GCTHREADS:="1"}
 : ${EULA:="0"}
-: ${JAVA_PARAMS:="-Xmx${MAX_HEAP} -Xms${MIN_HEAP} -XX:ParallelGCThreads=${GCTHREADS}"}
+: ${JAVA_PARAMS:=-Xmx${MAX_HEAP} -Xms${MIN_HEAP} -XX:ParallelGCThreads=${GCTHREADS}}
 
-if ( test ! -f "eula.txt" ); then
-	touch eula.txt
-	echo -ne "#By changing the setting below to TRUE you are indicating your agreement to our EULA" >> ${EULA}
-	echo -ne "(https://account.mojang.com/documents/minecraft_eula).\n" >> ${EULA}
-	echo -ne "#$(LC_ALL=C date)\n" >> ${EULA}
-	echo -ne "eula=$(test "${EULA}" -eq 1 && echo "true" || echo "false")\n" >> ${EULA}
+if ( test ! -f "${EULA_FILE}" ); then
+	(
+		echo "#By changing the setting below to TRUE you are indicating your agreement to our EULA"
+		echo "(https://account.mojang.com/documents/minecraft_eula)."
+		echo "#$(LC_ALL=C date)"
+		echo "eula=$(test "${EULA}" -eq 1 && echo "true" || echo "false")"
+	) >> "${EULA_FILE}"
 fi
 
-while ( grep -q -i 'false' ${EULA} ); do
-	echo "You need to agree to the EULA of Minecraft!"
-	echo "Read this: https://account.mojang.com/documents/minecraft_eula."
-	echo "If you agree it, edit eula.txt and set \"eula\" to true."
-	echo ""
-	echo -n "Do you want to edit eula.txt? (y/n): "
-	read answer
-	if ( test "$answer" != "n" ); then
-		/bin/sh
-	else
-		echo "quit setup." >&2
-		exit 1
-	fi
+while ( grep -q -i 'false' "${EULA_FILE}" ); do
+	(
+		echo "        You need to agree to the EULA of Minecraft!"
+		echo
+		echo "Read this: https://account.mojang.com/documents/minecraft_eula."
+		echo "If you agree it, set enviroment variable "EULA" to "1"."
+		echo "e.g. docker run -it -e EULA=1 syusui/minecraft-alpine"
+	) >> &2
+
+	exit 1
 done
 
 # get versions
