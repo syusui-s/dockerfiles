@@ -51,7 +51,7 @@ while ( grep -q -i 'false' "${EULA_FILE}" ); do
 		echo "        You need to agree to the EULA of Minecraft!"
 		echo
 		echo "Read this: https://account.mojang.com/documents/minecraft_eula."
-		echo "If you agree it, set enviroment variable "EULA" to "1"."
+		echo "If you agree it, set enviroment variable \"EULA\" to \"1\"."
 		echo "e.g. docker run -it -e EULA=1 syusui/minecraft-alpine"
 	) >> &2
 
